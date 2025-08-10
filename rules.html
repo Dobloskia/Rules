@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist de Trading con Registro</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #00ff41;
+            --highlight-color: #ff9900;
+            --border-color: #333333;
+            --progress-bar-bg: #333;
+            --progress-bar-fill: #00ff41;
+            --button-execute-bg: #007bff;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            background-image: linear-gradient(
+                rgba(0, 0, 0, 0.5) 50%,
+                rgba(0, 0, 0, 0) 50%
+            );
+            background-size: 100% 4px;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 1; }
+            50% { opacity: 0.95; }
+            100% { opacity: 1; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #0d0d0d;
+            border: 2px solid var(--text-color);
+            box-shadow: 0 0 15px var(--text-color), inset 0 0 10px rgba(0, 255, 65, 0.3);
+            padding: 25px;
+            border-radius: 8px;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 0 0 5px var(--text-color);
+            text-transform: uppercase;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: var(--highlight-color);
+        }
+
+        .rules-section, .log-section {
+            margin-bottom: 25px;
+            border: 1px dashed var(--border-color);
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .rules-section h2, .log-section h2 {
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--text-color);
+            padding-bottom: 5px;
+        }
+
+        .rule {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #222;
+            border-left: 4px solid var(--highlight-color);
+        }
+        
+        .rule p {
+            margin: 0;
+            flex-grow: 1;
+            padding-right: 15px;
+        }
+
+        .options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .options label {
+            cursor: pointer;
+            padding: 5px 15px;
+            border: 1px solid var(--text-color);
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .options input[type="radio"] {
+            display: none;
+        }
+
+        .options input[type="radio"]:checked + label {
+            background-color: var(--text-color);
+            color: var(--bg-color);
+            box-shadow: 0 0 10px var(--text-color);
+        }
+
+        .progress-section {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .progress-section h3 {
+             font-family: 'Press Start 2P', cursive;
+             font-size: 16px;
+             margin-bottom: 15px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background-color: var(--progress-bar-bg);
+            border: 2px solid var(--text-color);
+            border-radius: 4px;
+            padding: 3px;
+            box-sizing: border-box;
+        }
+
+        #progressBar {
+            width: 0%;
+            height: 100%;
+            background-color: var(--progress-bar-fill);
+            border-radius: 2px;
+            transition: width 0.5s ease-in-out;
+            box-shadow: 0 0 10px var(--progress-bar-fill);
+        }
+
+        #progressText {
+            margin-top: 10px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .execute-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        #executeTradeBtn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            padding: 12px 24px;
+            background-color: var(--button-execute-bg);
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-shadow: 0 0 5px #000;
+        }
+
+        #executeTradeBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--button-execute-bg);
+        }
+
+        .log-entry {
+            background-color: #222;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .log-timestamp {
+            font-weight: bold;
+            color: var(--highlight-color);
+            margin: 0 0 10px 0;
+        }
+
+        .log-details ul {
+            list-style-type: '>> ';
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .log-details li {
+            padding-left: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>REGLAS DE ORO</h1>
+
+        <!-- Sección de reglas principales -->
+        <div class="rules-section">
+            <h2>CONFIRMACIONES PRINCIPALES</h2>
+            <div class="rule">
+                <p>[TF_1H] - Esperar señal de confirmación ADX</p>
+                <div class="options">
+                    <input type="radio" id="rule1_si" name="rule1" value="si"><label for="rule1_si">SÍ</label>
+                    <input type="radio" id="rule1_no" name="rule1" value="no" checked><label for="rule1_no">NO</label>
+                </div>
+            </div>
+            <div class="rule">
+                <p>[TF_1H] - ¿Precio se encuentra en zona de interés?</p>
+                <div class="options">
+                    <input type="radio" id="rule2_si" name="rule2" value="si"><label for="rule2_si">SÍ</label>
+                    <input type="radio" id="rule2_no" name="rule2" value="no" checked><label for="rule2_no">NO</label>
+                </div>
+            </div>
+            <div class="rule">
+                <p>[TF_1H] - BBWP - ¿Subiendo la zona el 33% o viene de retroceso?</p>
+                <div class="options">
+                    <input type="radio" id="rule3_si" name="rule3" value="si"><label for="rule3_si">SÍ</label>
+                    <input type="radio" id="rule3_no" name="rule3" value="no" checked><label for="rule3_no">NO</label>
+                </div>
+            </div>
+            <div class="rule">
+                <p>[TF_1H] - Strategy - ¿Ha cerrado la vela actual cambiando de color?</p>
+                <div class="options">
+                    <input type="radio" id="rule4_si" name="rule4" value="si"><label for="rule4_si">SÍ</label>
+                    <input type="radio" id="rule4_no" name="rule4" value="no" checked><label for="rule4_no">NO</label>
+                </div>
+            </div>
+            <div class="rule">
+                <p>[TF_1H] - Strategy - ¿Hay rotura de estructura o se ha creado?</p>
+                <div class="options">
+                    <input type="radio" id="rule5_si" name="rule5" value="si"><label for="rule5_si">SÍ</label>
+                    <input type="radio" id="rule5_no" name="rule5" value="no" checked><label for="rule5_no">NO</label>
+                </div>
+            </div>
+            <div class="rule">
+                <p>[TF_1H] - Konkorde - ¿Está dentro del área de volumen?</p>
+                <div class="options">
+                    <input type="radio" id="rule6_si" name="rule6" value="si"><label for="rule6_si">SÍ</label>
+                    <input type="radio" id="rule6_no" name="rule6" value="no" checked><label for="rule6_no">NO</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de reglas secundarias -->
+        <div class="rules-section">
+            <h2>CONFIRMACIONES SECUNDARIAS</h2>
+            <div class="rule">
+                <p>[TF_4H] - ¿Estocástico se encuentra en zona de sobrecompra o sobreventa?</p>
+                <div class="options">
+                    <input type="radio" id="rule7_si" name="rule7" value="si"><label for="rule7_si">SÍ</label>
+                    <input type="radio" id="rule7_no" name="rule7" value="no" checked><label for="rule7_no">NO</label>
+                </div>
+            </div>
+            <div class="rule">
+                <p>[TF_4H] - ¿ADX está con impulso?</p>
+                <div class="options">
+                    <input type="radio" id="rule8_si" name="rule8" value="si"><label for="rule8_si">SÍ</label>
+                    <input type="radio" id="rule8_no" name="rule8" value="no" checked><label for="rule8_no">NO</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de progreso y ejecución -->
+        <div class="progress-section">
+            <h3>NIVEL DE CONFIRMACIÓN</h3>
+            <div class="progress-bar-container">
+                <div id="progressBar"></div>
+            </div>
+            <p id="progressText">0%</p>
+        </div>
+        <div class="execute-section">
+            <button id="executeTradeBtn">Ejecutar Trade</button>
+        </div>
+
+        <!-- Sección de registro de trades -->
+        <div class="log-section">
+            <h2>REGISTRO DE TRADES</h2>
+            <div id="tradeLog">
+                <!-- Las entradas del registro se añadirán aquí dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- ELEMENTOS DEL DOM ---
+        const mainRules = document.querySelectorAll('.rules-section:first-of-type input[type="radio"]');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const executeTradeBtn = document.getElementById('executeTradeBtn');
+        const tradeLog = document.getElementById('tradeLog');
+
+        // --- CONSTANTES ---
+        const TOTAL_RULES = 6;
+
+        // --- FUNCIONES ---
+
+        // Actualiza la barra de progreso y su color
+        function updateProgress() {
+            let yesCount = 0;
+            for (let i = 0; i < TOTAL_RULES; i++) {
+                const yesInput = document.getElementById(`rule${i + 1}_si`);
+                if (yesInput && yesInput.checked) {
+                    yesCount++;
+                }
+            }
+            
+            const percentage = (yesCount / TOTAL_RULES) * 100;
+            
+            progressBar.style.width = `${percentage}%`;
+            progressText.textContent = `${Math.round(percentage)}%`;
+
+            // --- LÓGICA DE COLOR CORREGIDA ---
+            // Se basa en el número de respuestas "SÍ" para evitar errores de redondeo.
+            // 4 de 6 confirmaciones (67%) ya se considera verde.
+            if (yesCount < 3) { // Menos de 50%
+                progressBar.style.backgroundColor = 'var(--highlight-color)'; // Naranja
+            } else if (yesCount < 4) { // 3 de 6 (50%)
+                progressBar.style.backgroundColor = '#ffff00'; // Amarillo
+            } else { // 4 de 6 (67%) o más
+                progressBar.style.backgroundColor = 'var(--progress-bar-fill)'; // Verde
+            }
+        }
+
+        // Registra un nuevo trade
+        function executeTrade() {
+            // 1. Obtener la fecha y hora actual
+            const now = new Date();
+            const timestamp = now.toLocaleString('es-ES', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+
+            // 2. Obtener las reglas confirmadas
+            const confirmedRules = [];
+            document.querySelectorAll('.rule').forEach((ruleElement, index) => {
+                const yesInput = ruleElement.querySelector(`input[id="rule${index + 1}_si"]`);
+                 if (yesInput && yesInput.checked) {
+                    const ruleText = ruleElement.querySelector('p').textContent;
+                    confirmedRules.push(ruleText);
+                }
+            });
+
+            // 3. Crear el elemento del registro en el DOM
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+
+            const confirmationsList = confirmedRules.length > 0
+                ? `<ul>${confirmedRules.map(rule => `<li>${rule}</li>`).join('')}</ul>`
+                : '<p>Ninguna confirmación validada.</p>';
+
+            logEntry.innerHTML = `
+                <p class="log-timestamp">Ejecutado: ${timestamp}</p>
+                <div class="log-details">
+                    <strong>Confirmaciones Validadas:</strong>
+                    ${confirmationsList}
+                </div>
+            `;
+
+            // 4. Añadir el nuevo registro al principio del log
+            tradeLog.prepend(logEntry);
+        }
+
+        // --- EVENT LISTENERS ---
+
+        // Actualizar progreso al cambiar una regla
+        mainRules.forEach(rule => {
+            rule.addEventListener('change', updateProgress);
+        });
+
+        // Ejecutar trade al hacer clic en el botón
+        executeTradeBtn.addEventListener('click', executeTrade);
+
+        // Inicializar la barra de progreso al cargar la página
+        document.addEventListener('DOMContentLoaded', updateProgress);
+    </script>
+
+</body>
+</html>
